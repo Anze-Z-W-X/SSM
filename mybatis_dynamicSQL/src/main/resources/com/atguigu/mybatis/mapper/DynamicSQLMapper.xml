@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.mybatis.mapper.DynamicSQLMapper">
+    <!--
+        动态SQL：
+        1、if，通过test属性中的表达式判断标签中的内容是否有效（是否会拼接到sql中）
+        2、where
+        a.若where标签中有条件成立，会自动生成where关键字
+        b.会自动将where标签中内容前多余的and去掉，但是其中内容后多余的and无法去掉
+        c.若where标签中没有任何一个条件成立，则where没有任何功能
+        3、trim
+        prefix、suffix：在标签中内容前面或后面添加指定内容
+        prefixOverrides、suffixOverrides：在标签中内容前面或后面去掉指定内容
+        4、choose、when、otherwise
+        相当于java中的if...else if...else
+        when至少设置一个，otherwise最多设置一个
+        5、foreach
+        collection：设置要循环的数组或集合
+        item：用一个字符串表示数组或集合中的每一个数据
+        separator：设置每次循环的数据之间的分隔符
+        open：循环的所有内容以什么开始
+        close：循环的所有内容以什么结束
+        6、sql片段
+        可以记录一段sql，在需要用的地方使用include标签进行引用
+        <sql id="empColumns">
+            emp_id,emp_name,age,gender,dept_id
+        </sql>
+        <sql>的引用:
+        <include refid="empColumns"></include>
+    -->
+
+    <sql id="empColumns">
+        emp_id,emp_name,age,gender,dept_id
+    </sql>
+
+    <select id="getEmpByCondition" resultType="Emp">
+        select <include refid="empColumns"/> from t_emp where 1=1
+        <if test="empName != null and empName !=''">
+            and emp_name = #{empName}
+        </if>
+
+        <if test="age != null and age !=''">
+            and age = #{age}
+        </if>
+
+        <if test="gender != null and gender !=''">
+            and gender = #{gender}
+        </if>
+        ;
+    </select>
+
+    <select id="getEmpByConditionTwo" resultType="Emp">
+        select <include refid="empColumns"/> from t_emp
+        <where>
+            <if test="empName != null and empName !=''">
+                emp_name = #{empName}
+            </if>
+
+            <if test="age != null and age !=''">
+                and age = #{age}
+            </if>
+
+            <if test="gender != null and gender !=''">
+                and gender = #{gender}
+            </if>
+        </where>
+        ;
+    </select>
+
+    <select id="getEmpByConditionThree" resultType="Emp">
+        select <include refid="empColumns"/> from t_emp
+            <!-- trim 标签，perfix，suffix会标签内容在前，后添加指定内容,prefixOverride会在标签内容前自动去掉指定内容 -->
+        <trim prefix="where" prefixOverrides="and">
+            <if test="empName != null and empName !=''">
+                emp_name = #{empName}
+            </if>
+
+            <if test="age != null and age !=''">
+                and age = #{age}
+            </if>
+
+            <if test="gender != null and gender !=''">
+                and gender = #{gender}
+            </if>
+        </trim>
+        ;
+    </select>
+    
+    <insert id="insertMoreEmp">
+        insert into t_emp values
+            <foreach collection="emps" item="emp" separator=",">
+                (null,#{emp.empName},#{emp.age},#{emp.gender},null)
+            </foreach>
+        ;
+    </insert>
+
+    <delete id="deleteMoreEmp">
+    <!--1.  delete from t_emp where emp_id in (
+        <foreach collection="empIds" item="empId" separator=",">
+            #{empId}
+        </foreach>
+        );-->
+        delete from t_emp where
+          <foreach collection="empIds" item="empId" separator="or">
+              emp_id = #{empId}
+          </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.mybatis.mapper.DeptMapper">
+
+    <resultMap id="deptResultMap" type="Dept">
+        <!--常用的标签:1.id:处理主键和实体类中属性的映射关系
+            2.result:处理普通字段和实体类中属性的映射关系
+            column:设置映射关系中sql中的字段名
+            property:设置实体类中的属性名
+        -->
+        <id column="dept_id" property="deptId"/>
+        <result column="dept_name" property="deptName"/>
+        <collection property="emps" ofType="Emp">
+            <id column="emp_id" property="empId"/>
+            <result column="emp_name" property="empName"/>
+            <result column="age" property="age"/>
+            <result column="gender" property="gender"/>
+            <association property="dept" javaType="Dept">
+                <id column="dept_id" property="deptId"/>
+                <result column="dept_name" property="deptName"/>
+            </association>
+        </collection>
+    </resultMap>
+
+    <select id="getEmpAndDeptByStepTwo" resultType="Dept">
+        select * from t_dept where dept_id = #{deptId};
+    </select>
+
+    <select id="getDeptAndEmpByDeptId" resultMap="deptResultMap">
+        select *
+        from t_dept
+        left join t_emp
+        on t_dept.dept_id = t_emp.dept_id
+        where t_dept.dept_id = #{deptId};
+    </select>
+</mapper>
